@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What's Your Parenting Style? — Joyful Parenting with Jayati</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ===== PostHog-style tokens ===== */
+  :root{
+    --canvas:#eeefe9; --surface-soft:#e5e7e0; --card:#ffffff; --doc:#fcfcfa; --dark:#23251d;
+    --ink:#23251d; --body:#4d4f46; --mute:#6c6e63; --ash:#9b9c92; --stone:#b6b7af;
+    --hairline:#bfc1b7; --hairline-soft:#dcdfd2;
+    --primary:#f7a501; --primary-pressed:#dd9001; --on-primary:#23251d; --primary-soft:#fbe3b0;
+    --blue:#1d4ed8; --accent-blue:#2c84e0; --blue-soft:#dceaf6;
+    --red:#cd4239; --red-soft:#f7d6d3; --green:#2c8c66; --green-soft:#d9eddf;
+    --purple:#7c44a6; --purple-soft:#e7d8ee;
+    --focus:rgba(59,130,246,0.5);
+    --font:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+    --r-sm:4px; --r-md:6px; --r-lg:8px; --r-full:9999px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--font); background:var(--canvas); color:var(--body);
+    min-height:100vh; display:flex; justify-content:center;
+    padding:24px 16px 56px; line-height:1.5;
+  }
+  .app{width:100%;max-width:480px;}
+
+  /* progress */
+  .progress-wrap{height:6px;background:var(--surface-soft);border:1px solid var(--hairline-soft);border-radius:var(--r-full);overflow:hidden;margin-bottom:28px}
+  .progress-bar{height:100%;width:0;background:var(--ink);border-radius:var(--r-full);transition:width .4s cubic-bezier(.4,0,.2,1)}
+  .progress-wrap[hidden]{display:none}
+
+  .screen{animation:rise .35s cubic-bezier(.2,.7,.3,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* welcome */
+  .doodle{display:block;margin-bottom:16px}
+  .eyebrow{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--mute);margin-bottom:14px}
+  h1{font-family:var(--font);font-weight:800;font-size:clamp(28px,8vw,36px);line-height:1.15;letter-spacing:-.6px;color:var(--ink);margin-bottom:16px}
+  h1 em{font-style:normal;color:var(--ink);background:linear-gradient(transparent 60%, var(--primary-soft) 60%);padding:0 2px}
+  .lede{font-size:16px;color:var(--body);margin-bottom:10px;line-height:1.5}
+  .meta{font-size:13px;color:var(--mute);margin-top:22px;display:flex;gap:16px;flex-wrap:wrap}
+  .meta span{display:inline-flex;align-items:center;gap:7px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--primary)}
+
+  /* question */
+  .q-count{font-size:12px;text-transform:uppercase;color:var(--mute);font-weight:700;margin-bottom:12px}
+  .q-text{font-family:var(--font);font-weight:700;font-size:clamp(20px,5.5vw,24px);line-height:1.33;letter-spacing:-.4px;color:var(--ink);margin-bottom:24px}
+
+  /* options as bordered cards; selected = ink fill */
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt{
+    font-family:var(--font);font-size:16px;font-weight:500;text-align:left;
+    background:var(--card);border:1px solid var(--hairline);border-radius:var(--r-md);
+    padding:14px 16px;color:var(--ink);cursor:pointer;width:100%;
+    transition:border-color .12s ease,background .12s ease,transform .08s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .opt:hover{border-color:var(--ink)}
+  .opt:active{transform:translateY(1px)}
+  .opt.sel{background:var(--ink);border-color:var(--ink);color:#fff}
+  .opt:focus-visible{outline:none;border-color:var(--accent-blue);box-shadow:0 0 0 3px var(--focus)}
+
+  /* agree scale */
+  .scale{display:flex;flex-direction:column;gap:8px}
+  .scale .opt{display:flex;align-items:center;gap:12px}
+  .scale .tick{width:22px;height:22px;border-radius:50%;border:2px solid var(--stone);flex:none;transition:all .12s ease}
+  .scale .opt.sel .tick{border-color:#fff;background:var(--primary)}
+
+  /* nav + buttons */
+  .nav{display:flex;align-items:center;gap:12px;margin-top:24px}
+  .btn{
+    font-family:var(--font);font-weight:700;font-size:15px;border-radius:var(--r-md);
+    padding:0 18px;height:44px;cursor:pointer;border:1px solid transparent;
+    transition:background .12s ease,transform .08s ease;-webkit-tap-highlight-color:transparent;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .btn-primary{background:var(--primary);color:var(--on-primary)}
+  .btn-primary:hover{background:var(--primary-pressed)}
+  .btn-primary:active{transform:translateY(1px)}
+  .btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px var(--focus)}
+  .btn-block{width:100%}
+  .btn-text{background:transparent;color:var(--mute);font-weight:600;padding:0 6px}
+  .btn-text:hover{color:var(--ink)}
+
+  /* result card */
+  .result-card{background:var(--card);border:1px solid var(--hairline);border-radius:var(--r-md);padding:28px 24px;text-align:center;position:relative;overflow:hidden}
+  .result-card .corner{position:absolute;top:14px;right:14px;opacity:.92}
+  .result-card .corner svg{width:34px;height:34px}
+  .r-eyebrow{font-size:12px;text-transform:uppercase;color:var(--mute);font-weight:700;margin-bottom:14px}
+  .r-emoji{font-size:46px;line-height:1;margin-bottom:8px}
+  .r-style{font-family:var(--font);font-weight:800;font-size:clamp(26px,7vw,34px);line-height:1.1;letter-spacing:-.6px;color:var(--ink);margin-bottom:16px}
+  .r-season{font-size:15px;font-weight:600;color:var(--ink);background:var(--surface-soft);border:1px solid var(--hairline);border-radius:var(--r-full);padding:8px 16px;display:inline-block}
+  .r-season b{font-weight:700;color:var(--ink);box-shadow:inset 0 -7px 0 var(--primary-soft)}
+
+  /* result body = four-colour callout banners */
+  .r-body{margin-top:20px;text-align:left;display:flex;flex-direction:column;gap:12px}
+  .r-block{border-radius:var(--r-md);padding:16px 18px}
+  .r-body>div:nth-child(1){background:var(--green-soft)}
+  .r-body>div:nth-child(2){background:var(--blue-soft)}
+  .r-body>div:nth-child(3){background:var(--purple-soft)}
+  .r-label{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
+  .r-body>div:nth-child(1) .r-label{color:var(--green)}
+  .r-body>div:nth-child(2) .r-label{color:var(--blue)}
+  .r-body>div:nth-child(3) .r-label{color:var(--purple)}
+  .r-body>div:nth-child(1) .r-label::before{content:"\2705  "}
+  .r-body>div:nth-child(2) .r-label::before{content:"\1F4A1  "}
+  .r-body>div:nth-child(3) .r-label::before{content:"\1F4D8  "}
+  .r-block p{font-size:15px;color:var(--ink);line-height:1.5}
+  .r-shadow{font-size:14px;color:var(--body);background:var(--surface-soft);border:1px solid var(--hairline-soft);border-radius:var(--r-md);padding:14px 16px;line-height:1.5}
+  .r-shadow b{color:var(--ink);font-weight:700}
+
+  /* DM block — neutral card, ink button (keeps yellow scarce) */
+  .cta{background:var(--card);border:1px solid var(--hairline);border-radius:var(--r-md);padding:20px;text-align:center;margin-top:20px}
+  .cta p{font-size:15px;line-height:1.5;margin-bottom:14px;color:var(--body)}
+  .cta .btn-primary{background:var(--ink);color:#fff}
+  .cta .btn-primary:hover{background:#000}
+
+  /* share */
+  .share-btn{
+    width:100%;margin-top:20px;display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--surface-soft);border:1px solid var(--hairline);color:var(--ink);
+    font-family:var(--font);font-weight:700;font-size:15px;border-radius:var(--r-md);height:44px;cursor:pointer;
+    transition:background .12s ease;-webkit-tap-highlight-color:transparent;
+  }
+  .share-btn:hover{background:var(--hairline-soft)}
+  .share-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--focus)}
+  .share-btn[disabled]{opacity:.6;cursor:default}
+
+  /* email capture — the one yellow CTA lives here */
+  .email-card{background:var(--doc);border:1px solid var(--hairline);border-radius:var(--r-md);padding:20px;margin-top:20px}
+  .email-card p{font-size:14px;color:var(--body);line-height:1.5;margin-bottom:14px}
+  .email-card p b{font-weight:700;color:var(--ink)}
+  .email-input{
+    width:100%;font-family:var(--font);font-size:16px;color:var(--ink);background:var(--card);
+    border:1px solid var(--hairline);border-radius:var(--r-md);padding:10px 12px;height:44px;margin-bottom:10px;
+  }
+  .email-input::placeholder{color:var(--ash)}
+  .email-input:focus{outline:none;border-color:var(--accent-blue);box-shadow:0 0 0 3px var(--focus)}
+  .email-input.err{border-color:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+  .email-card .btn-primary{width:100%}
+  .email-note{font-size:12px;color:var(--mute);text-align:center;margin-top:10px;line-height:1.4}
+  .email-done{text-align:center;padding:6px 4px}
+  .email-done .check{font-size:32px;line-height:1;margin-bottom:8px}
+  .email-done h4{font-family:var(--font);font-weight:800;font-size:20px;letter-spacing:-.4px;color:var(--ink);margin-bottom:6px}
+  .email-done p{font-size:14px;color:var(--body);line-height:1.5}
+
+  .restart{text-align:center;margin-top:16px}
+  .footer{text-align:center;font-size:12px;color:var(--mute);margin-top:28px}
+  .footer b{color:var(--ink);font-weight:700}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="progress-wrap" id="progressWrap" hidden><div class="progress-bar" id="progressBar"></div></div>
+  <div id="root"></div>
+  <div class="footer">A little reflection from <b>Joyful Parenting with Jayati</b> 🤍</div>
+</div>
+
+<script>
+/* ============================================================
+   EDIT ME — your settings live here
+   ============================================================ */
+const IG_HANDLE = "jayati_agarwal";
+
+// Where the quiz link lives (used in the share text). Leave "" to skip.
+const QUIZ_URL  = "";
+
+// ANALYTICS (PostHog) --------------------------------------------
+// Paste your PostHog Project API key (Project settings). EU project?
+// change host to https://eu.i.posthog.com. Leave "" to turn analytics off.
+const POSTHOG_TOKEN = "";
+const POSTHOG_HOST  = "https://us.i.posthog.com";
+(function(){
+  if(!POSTHOG_TOKEN) return;
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  posthog.init(POSTHOG_TOKEN,{api_host:POSTHOG_HOST, defaults:'2026-01-30'});
+})();
+function track(name, props){ try{ if(window.posthog && posthog.capture) posthog.capture(name, props||{}); }catch(e){} }
+
+// EMAIL CAPTURE (MailerLite — free plan friendly) ----------------
+// Setup: make 3 Groups (Gentle Anchor / Protector / Free Spirit),
+// then 3 Embedded forms, each adding to ONE of those groups.
+// Open each form's HTML, copy its "action" URL (looks like the ones
+// below) and paste it against the matching style. Leave all "" to
+// preview the flow without capturing.
+const ML_FORMS = {
+  anchor:    "",  // e.g. https://assets.mailerlite.com/jsonp/123456/forms/AAA/subscribe
+  protector: "",  // e.g. https://assets.mailerlite.com/jsonp/123456/forms/BBB/subscribe
+  free:      "",  // e.g. https://assets.mailerlite.com/jsonp/123456/forms/CCC/subscribe
+};
+// Create these custom fields in MailerLite (Subscribers > Fields), then
+// the values land automatically. Tags must match exactly:
+//   style, style_name, season, generation, support, stage
+
+/* ---------- Context questions (unscored — personalise your DM) ---------- */
+const CONTEXT = [
+  { q:"First — you're parenting as a…", opts:["Millennial mum","Gen-Z mum","Somewhere in between"] },
+  { q:"Your day-to-day support looks like…", opts:["A joint family","Nuclear, with some help","Mostly just me"] },
+  { q:"Right now you're in the…", opts:["Newborn fog","Toddler chaos","Big-kid feelings era","Multiple stages at once"] },
+];
+
+/* ---------- Diagnostic statements (1–5 scale) ----------
+   bucket: which trait this loads onto
+   kind: 'style' (stable) or 'season' (current state) */
+const STATEMENTS = [
+  { t:"Even when I set a firm boundary, I try my best to stay warm and connected while I do it.", bucket:"anchor", kind:"style" },
+  { t:"I can hold a limit and my child's big feelings about that limit at the same time.", bucket:"anchor", kind:"style" },
+  { t:"Clear rules and consequences are what keep a child feeling secure.", bucket:"protector", kind:"style" },
+  { t:"When my child pushes back on a rule, my instinct is to hold the line firmly.", bucket:"protector", kind:"style" },
+  { t:"I find it really hard to say no when my child wants something badly.", bucket:"free", kind:"style" },
+  { t:"I'd rather keep the closeness than enforce a rule in the moment.", bucket:"free", kind:"style" },
+  { t:"Most days, I'm just trying to make it to bedtime in one piece.", bucket:"survivor", kind:"season" },
+  { t:"By the time my child needs me calm, I'm often already running on empty.", bucket:"survivor", kind:"season" },
+  { t:"I often worry I'm not doing enough even when I'm doing a lot.", bucket:"guardian", kind:"season" },
+  { t:"It's hard for me to step back and let my child struggle a little on their own.", bucket:"guardian", kind:"season" },
+  { t:"I actively catch my reactions and correct my own behaviours first.", bucket:"healer", kind:"season" },
+  { t:"Understanding my own childhood has changed how I respond to my child.", bucket:"healer", kind:"season" },
+];
+
+const SCALE = [
+  {label:"Strongly disagree", v:1},
+  {label:"Disagree", v:2},
+  {label:"It depends", v:3},
+  {label:"Agree", v:4},
+  {label:"Strongly agree", v:5},
+];
+
+/* ---------- Result copy ---------- */
+const STYLES = {
+  anchor:{ emoji:"🌳", name:"The Gentle Anchor",
+    super:"You've found the spot most mums are reaching for: warm and firm at once. You can hold a limit without losing the connection. Your child feels both safe and seen at the same time.",
+    edge:"Your calm needs refilling too. The risk in doing it \"right\" is quietly burning you out. Protecting your own sanity is part of the job, not a break from it." },
+  protector:{ emoji:"🛡️", name:"The Protector",
+    super:"You take this seriously. Routines, standards and clear limits are how you love and your child always knows exactly where they stand. That security is a real gift.",
+    edge:"In the rush to correct, the warmth can go quiet. Sometimes the lesson lands deeper after the hug. Connection first, then the boundary holds even better." },
+  free:{ emoji:"🎈", name:"The Free Spirit",
+    super:"Fun, warm, wonderfully close. Your child feels your love loudly and never doubts it. Joy and connection are your superpower, and they matter more than parenting culture admits.",
+    edge:"Boundaries feel like the hard part. But to a child, a loving limit feels like being held, not held back. You can stay this warm and still hold the line." },
+};
+
+const SEASONS = {
+  survivor:{ name:"a Survivor season",
+    text:"Right now you're running on empty and still showing up. This is your devotion, not failure. Before any new technique, the real work is refilling your own cup. It isn't selfish; it's the thing everything else depends on." },
+  guardian:{ name:"a Watchful season",
+    text:"Right now you're carrying a lot of worry about getting it right, a sign of how deeply you care. A little room to let your child wobble is where their confidence grows. And a little less worry is where your peace grows too." },
+  healer:{ name:"a Healing season",
+    text:"Right now you're doing the bravest thing, breaking a cycle nobody handed you a manual for. Stay as gentle with yourself as you're learning to be with your child. Healing isn't linear, and you don't have to outrun your own pace." },
+  steady:{ name:"a steady, grounded season",
+    text:"Right now you're parenting from a relatively settled place. Not running on fumes, not gripped by worry. That steadiness is worth protecting; it's the ground everything else grows from." },
+};
+
+/* ============================================================ */
+const root = document.getElementById('root');
+const progressWrap = document.getElementById('progressWrap');
+const progressBar = document.getElementById('progressBar');
+
+const TOTAL = CONTEXT.length + STATEMENTS.length;
+let step = -1;                 // -1 welcome, 0..(TOTAL-1) questions, TOTAL result
+const answers = { context:[], scores:[] };
+
+function setProgress(){
+  if(step<0){ progressWrap.hidden=true; return; }
+  progressWrap.hidden=false;
+  const done = step>=TOTAL ? TOTAL : step;
+  progressBar.style.width = (done/TOTAL*100)+"%";
+}
+
+function render(){
+  setProgress();
+  if(step===-1) return renderWelcome();
+  if(step>=TOTAL) return renderResult();
+  if(step < CONTEXT.length) return renderContext(step);
+  return renderStatement(step - CONTEXT.length);
+}
+
+/* hand-drawn marginalia: an original sprout (signature decoration) */
+const DOODLE = `<svg class="sprout" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M22 40 C22 30 22 24 22 18" stroke="#23251d" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M22 24 C14 24 9 19 9 12 C17 12 22 16 22 24 Z" fill="#fbe3b0" stroke="#23251d" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M22 20 C30 20 35 15 35 8 C27 8 22 12 22 20 Z" fill="#ffffff" stroke="#23251d" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M16 40 C19 38 25 38 28 40" stroke="#23251d" stroke-width="2.2" stroke-linecap="round"/>
+</svg>`;
+
+function renderWelcome(){
+  root.innerHTML = `
+    <div class="screen">
+      ${DOODLE}
+      <p class="eyebrow">A 2-minute reflection</p>
+      <h1>What's your <em>parenting style?</em></h1>
+      <p class="lede">Not to put you in a box. Only to gently show you the way you already parent. Also one small shift that would help most right now.</p>
+      <p class="lede">No right answers. Just honest ones.</p>
+      <div class="nav"><button class="btn btn-primary btn-block" id="start">Begin — it's 2 minutes</button></div>
+      <div class="meta">
+        <span><span class="dot"></span>15 quick questions</span>
+        <span><span class="dot"></span>Private &amp; just for you</span>
+      </div>
+    </div>`;
+  document.getElementById('start').onclick = ()=>{ track('quiz_started'); step=0; render(); };
+}
+
+function renderContext(i){
+  const c = CONTEXT[i];
+  const chosen = answers.context[i];
+  root.innerHTML = `
+    <div class="screen">
+      <div class="q-count">A little about you · ${i+1} of ${CONTEXT.length}</div>
+      <div class="q-text">${c.q}</div>
+      <div class="options">
+        ${c.opts.map((o,idx)=>`<button class="opt ${chosen===idx?'sel':''}" data-i="${idx}">${o}</button>`).join('')}
+      </div>
+      <div class="nav">${step>0?'<button class="btn-text" id="back">← Back</button>':''}</div>
+    </div>`;
+  root.querySelectorAll('.opt').forEach(b=>{
+    b.onclick = ()=>{ answers.context[i]=+b.dataset.i; track('quiz_question_answered',{ number: step+1, total: TOTAL }); step++; setTimeout(render,180); };
+  });
+  bindBack();
+}
+
+function renderStatement(j){
+  const s = STATEMENTS[j];
+  const chosen = answers.scores[j];
+  root.innerHTML = `
+    <div class="screen">
+      <div class="q-count">How true does this feel? · ${j+1} of ${STATEMENTS.length}</div>
+      <div class="q-text">"${s.t}"</div>
+      <div class="scale">
+        ${SCALE.map(o=>`<button class="opt ${chosen===o.v?'sel':''}" data-v="${o.v}"><span class="tick"></span>${o.label}</button>`).join('')}
+      </div>
+      <div class="nav"><button class="btn-text" id="back">← Back</button></div>
+    </div>`;
+  root.querySelectorAll('.opt').forEach(b=>{
+    b.onclick = ()=>{ answers.scores[j]=+b.dataset.v; track('quiz_question_answered',{ number: step+1, total: TOTAL }); step++; setTimeout(render,180); };
+  });
+  bindBack();
+}
+
+function bindBack(){
+  const back = document.getElementById('back');
+  if(back) back.onclick = ()=>{ step--; render(); };
+}
+
+function tally(){
+  const styles={anchor:0,protector:0,free:0};
+  const seasons={survivor:0,guardian:0,healer:0};
+  STATEMENTS.forEach((s,j)=>{
+    const v = answers.scores[j]||0;
+    if(s.kind==='style') styles[s.bucket]+=v; else seasons[s.bucket]+=v;
+  });
+  // primary + shadow style
+  const styleRank = Object.entries(styles).sort((a,b)=>b[1]-a[1]);
+  const primary = styleRank[0][0];
+  const shadow  = styleRank[1][0];
+  // season — only if it's actually strong (threshold 6 = both leaned agree)
+  const seasonRank = Object.entries(seasons).sort((a,b)=>b[1]-a[1]);
+  const season = seasonRank[0][1] >= 6 ? seasonRank[0][0] : 'steady';
+  return {primary, shadow, season, styles, seasons};
+}
+
+function renderResult(){
+  const {primary, shadow, season} = tally();
+  track('quiz_completed', {
+    style: primary, style_name: STYLES[primary].name, season,
+    shadow, shadow_name: STYLES[shadow].name,
+    generation: CONTEXT[0].opts[answers.context[0]],
+    support: CONTEXT[1].opts[answers.context[1]],
+    stage: CONTEXT[2].opts[answers.context[2]],
+  });
+  const S = STYLES[primary];
+  const Sh = STYLES[shadow];
+  const Se = SEASONS[season];
+  const igUrl = `https://instagram.com/${IG_HANDLE}`;
+  const styleLower = S.name.replace('The ','the ');
+
+  root.innerHTML = `
+    <div class="screen">
+      <div class="result-card" id="resultCard">
+        <div class="corner">${DOODLE}</div>
+        <div class="r-eyebrow">Your parenting style</div>
+        <div class="r-emoji">${S.emoji}</div>
+        <div class="r-style">${S.name}</div>
+        <div class="r-season">and right now, you're in <b>${Se.name}</b></div>
+      </div>
+
+      <button class="share-btn" id="shareBtn">📸 Save &amp; share to your Story</button>
+
+      <div class="r-body">
+        <div class="r-block">
+          <div class="r-label">What you're doing beautifully</div>
+          <p>${S.super}</p>
+        </div>
+        <div class="r-block">
+          <div class="r-label">Your one gentle shift</div>
+          <p>${S.edge}</p>
+        </div>
+        <div class="r-block">
+          <div class="r-label">About this season</div>
+          <p>${Se.text}</p>
+        </div>
+        <div class="r-shadow">
+          A little <b>${Sh.name}</b> also showed up in your answers. Most of us are a blend.
+        </div>
+      </div>
+
+      <div class="email-card" id="emailCard">
+        <div class="r-label">Want it in writing?</div>
+        <p>I'll email your result to keep, a little more about <b>${styleLower}</b> plus one tiny tip a day for the next 7 days, made for your style and season.</p>
+        <input class="email-input" id="emailInput" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" />
+        <button class="btn btn-primary" id="emailSubmit">Send me my 7 days of tips</button>
+        <div class="email-note">No spam, ever. Unsubscribe anytime. 🤍</div>
+      </div>
+
+      <div class="cta">
+        <p>Or talk it through. DM me your result and I'll reply, just us.</p>
+        <a class="btn btn-primary btn-block" id="dmBtn" href="${igUrl}" target="_blank" rel="noopener">DM me on Instagram 🤍</a>
+      </div>
+
+      <div class="restart"><button class="btn-text" id="restart">Take it again</button></div>
+    </div>`;
+
+  document.getElementById('shareBtn').onclick = (e)=>shareResult(e.currentTarget);
+  document.getElementById('emailSubmit').onclick = handleEmail;
+  document.getElementById('emailInput').addEventListener('keydown', ev=>{ if(ev.key==='Enter') handleEmail(); });
+  { const _dm=document.getElementById('dmBtn'); if(_dm) _dm.addEventListener('click',()=>track('dm_clicked',{ style: primary })); }
+  document.getElementById('restart').onclick = ()=>{
+    track('quiz_restarted');
+    answers.context=[]; answers.scores=[]; step=-1; render();
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- Share to Story: draw a 1080×1920 image ---------- */
+
+/* ---- share-card content: 12 mantras + per-style colour ---- */
+const MANTRAS = {
+  anchor:{
+    survivor:"I am the calm my child comes back to.",
+    guardian:"I am a floor to stand on, not a railing to cling to.",
+    healer:"I am raising my child and re-raising myself.",
+    steady:"I am warm and firm in the same breath.",
+  },
+  protector:{
+    survivor:"I am still showing up, even on the empty days.",
+    guardian:"I am firmest when I lead with warmth.",
+    healer:"I am keeping what served me and releasing what didn't.",
+    steady:"I am the steady ground my child grows from.",
+  },
+  free:{
+    survivor:"I am the joy carrying us both today.",
+    guardian:"I am holding my child close, even when I hold the line.",
+    healer:"I am both the warmth and the boundary.",
+    steady:"I am the reason my child never doubts they're loved.",
+  },
+};
+const STYLE_TINT = {
+  anchor:{soft:"#d9eddf", ink:"#2c8c66"},
+  protector:{soft:"#dceaf6", ink:"#1d4ed8"},
+  free:{soft:"#e7d8ee", ink:"#7c44a6"},
+};
+
+async function buildStoryImage(){
+  const {primary, season} = tally();
+  const S = STYLES[primary];
+  const tint = STYLE_TINT[primary];
+  const mantra = (MANTRAS[primary] && MANTRAS[primary][season]) || MANTRAS[primary].steady;
+
+  try{
+    await Promise.all([
+      document.fonts.load('700 92px "IBM Plex Sans"'),
+      document.fonts.load('600 56px "IBM Plex Sans"'),
+      document.fonts.load('500 36px "IBM Plex Sans"'),
+      document.fonts.load('400 36px "IBM Plex Sans"'),
+    ]);
+    await document.fonts.ready;
+  }catch(e){}
+
+  // palette
+  const CANVAS="#eeefe9", CARD="#ffffff", INK="#23251d", MUTE="#6c6e63",
+        HAIR="#bfc1b7", PRIMARY="#f7a501", PRIMARY_SOFT="#fbe3b0";
+
+  const W=1080, H=1920, cx=W/2;
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const x=c.getContext('2d');
+
+  const RR=(X,Y,w,h,r)=>{ if(x.roundRect){x.beginPath();x.roundRect(X,Y,w,h,r);} else {x.beginPath();x.rect(X,Y,w,h);} };
+  const lineWrap=(text,maxW)=>{
+    const words=text.split(' '); const out=[]; let line='';
+    for(const w of words){ const t=line?line+' '+w:w; if(x.measureText(t).width>maxW && line){out.push(line);line=w;} else line=t; }
+    if(line) out.push(line); return out;
+  };
+  const drawLeaf=(px,py,size,deg)=>{
+    x.save(); x.translate(px,py); x.rotate(deg*Math.PI/180);
+    x.fillStyle=PRIMARY_SOFT; x.strokeStyle=INK; x.lineWidth=Math.max(2,size/15);
+    x.beginPath(); x.ellipse(0,0,size*0.32,size*0.46,0,0,Math.PI*2); x.fill(); x.stroke();
+    x.lineWidth=Math.max(1,size/24); x.beginPath(); x.moveTo(0,-size*0.36); x.lineTo(0,size*0.34); x.stroke();
+    x.restore();
+  };
+  const drawSprout=(px,py,sz)=>{
+    x.strokeStyle=INK; x.lineCap='round'; x.lineWidth=Math.max(2,sz/11);
+    x.beginPath(); x.moveTo(px,py+sz*0.5); x.lineTo(px,py-sz*0.05); x.stroke();
+    drawLeaf(px-sz*0.30,py-sz*0.32,sz*0.7,45);
+    drawLeaf(px+sz*0.30,py-sz*0.32,sz*0.7,-45);
+  };
+  const drawSparkle=(px,py,sz,col)=>{
+    x.strokeStyle=col; x.lineCap='round'; x.lineWidth=Math.max(2,sz/4);
+    x.beginPath(); x.moveTo(px,py-sz); x.lineTo(px,py+sz); x.moveTo(px-sz,py); x.lineTo(px+sz,py); x.stroke();
+  };
+
+  // ground + card
+  x.fillStyle=CANVAS; x.fillRect(0,0,W,H);
+  const cX0=70, cX1=W-70, cY0=250, cY1=1600, innerW=820;
+  x.fillStyle=CARD; x.strokeStyle=HAIR; x.lineWidth=3;
+  RR(cX0,cY0,cX1-cX0,cY1-cY0,30); x.fill(); x.stroke();
+
+  // measure for vertical centering
+  x.font='700 92px "IBM Plex Sans"'; const nm=lineWrap(S.name,innerW);
+  x.font='600 56px "IBM Plex Sans"'; const ml=lineWrap(mantra,innerW-120);
+  const bandH=128+ml.length*78+76;
+  const total=144+44+58+72+78 + nm.length*100 + 54 + (bandH+70) + (90+44) + 30;
+  let y=cY0+Math.max(70,(cY1-cY0-total)/2);
+
+  x.textAlign="center";
+
+  // medallion + emoji
+  const rad=72, mcy=y+rad;
+  x.fillStyle=tint.soft; x.strokeStyle=HAIR; x.lineWidth=3;
+  x.beginPath(); x.arc(cx,mcy,rad,0,Math.PI*2); x.fill(); x.stroke();
+  x.textBaseline="middle"; x.font='92px "IBM Plex Sans"';
+  x.fillText(S.emoji, cx, mcy+2);
+  y+=144+44;
+
+  // lead-in
+  x.textBaseline="middle";
+  x.fillStyle=MUTE; x.font='500 36px "IBM Plex Sans"'; x.fillText("I took the parenting quiz by", cx, y); y+=58;
+  x.fillStyle=INK;  x.font='700 44px "IBM Plex Sans"'; x.fillText("@"+IG_HANDLE, cx, y); y+=72;
+  x.fillStyle=MUTE; x.font='500 38px "IBM Plex Sans"'; x.fillText("and I am\u2026", cx, y); y+=78;
+
+  // style name
+  x.fillStyle=INK; x.font='700 92px "IBM Plex Sans"';
+  for(const ln of nm){ x.fillText(ln, cx, y); y+=100; }
+
+  // accent bar
+  x.fillStyle=PRIMARY; RR(cx-80,y-8,160,16,8); x.fill(); y+=54;
+
+  // mantra band
+  const bandTop=y;
+  x.fillStyle=tint.soft; RR(cX0+40,bandTop,(cX1-40)-(cX0+40),bandH,22); x.fill();
+  x.fillStyle=tint.ink; x.font='700 30px "IBM Plex Sans"'; x.fillText("MY MANTRA", cx, bandTop+58);
+  x.textAlign="left"; x.font='700 150px "IBM Plex Sans"'; x.fillText("\u201C", cX0+78, bandTop+92); x.textAlign="center";
+  let my=bandTop+128+39; x.fillStyle=INK; x.font='600 56px "IBM Plex Sans"';
+  for(const ln of ml){ x.fillText(ln, cx, my); my+=78; }
+  y+=bandH+70;
+
+  // CTA pill
+  x.font='700 44px "IBM Plex Sans"'; const cta="Find your style";
+  const cw=x.measureText(cta).width+96, ch=90;
+  x.fillStyle=PRIMARY; RR(cx-cw/2,y,cw,ch,45); x.fill();
+  x.fillStyle=INK; x.fillText(cta, cx, y+ch/2+2); y+=ch+44;
+  x.fillStyle=MUTE; x.font='500 30px "IBM Plex Sans"'; x.fillText("link in @"+IG_HANDLE+"'s bio", cx, y);
+
+  // doodles
+  x.textBaseline="alphabetic";
+  drawSprout(150, cY0+70, 58);
+  drawSparkle(930, cY0+90, 22, PRIMARY);
+  drawSparkle(905, cY1-90, 16, PRIMARY);
+
+  return await new Promise(res=>c.toBlob(res,'image/png',0.95));
+}
+function wrapText(ctx, text, cx, y, maxWidth, lineHeight){
+  const words=text.split(' '); let line='', yy=y;
+  for(const w of words){
+    const test = line ? line+' '+w : w;
+    if(ctx.measureText(test).width>maxWidth && line){ ctx.fillText(line,cx,yy); line=w; yy+=lineHeight; }
+    else line=test;
+  }
+  ctx.fillText(line,cx,yy); return yy;
+}
+
+async function shareResult(btn){
+  const orig=btn.innerHTML; btn.disabled=true; btn.textContent="Creating your image…";
+  try{ const t=tally(); track('result_shared',{ style:t.primary, season:t.season }); }catch(e){}
+  try{
+    const blob=await buildStoryImage();
+    const file=new File([blob],"my-parenting-style.png",{type:"image/png"});
+    const shareText = "I just found my parenting style 🤍" + (QUIZ_URL?(" — take the quiz: "+QUIZ_URL):"");
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:"My Parenting Style", text:shareText});
+    } else {
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download="my-parenting-style.png";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),4000);
+    }
+  }catch(e){ /* user cancelled or share blocked — no-op */ }
+  btn.disabled=false; btn.innerHTML=orig;
+}
+
+/* ---------- Email capture ---------- */
+async function handleEmail(){
+  const input=document.getElementById('emailInput');
+  const btn=document.getElementById('emailSubmit');
+  const email=(input.value||'').trim();
+  const valid=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if(!valid){ input.classList.add('err'); input.focus(); return; }
+  input.classList.remove('err');
+  btn.disabled=true; btn.textContent="Sending…";
+  try{ submitEmail(email); }catch(e){}
+  try{ const t=tally(); track('email_captured',{ style:t.primary, season:t.season }); }catch(e){}
+  setTimeout(()=>{
+    document.getElementById('emailCard').innerHTML =
+      `<div class="email-done">
+         <div class="check">🤍</div>
+         <h4>On its way!</h4>
+         <p>Your result's landing in your inbox now — and day 1 of your tips arrives tomorrow morning. (Peek in spam if it's shy.)</p>
+       </div>`;
+  }, 500);
+}
+
+// Posts to MailerLite through a hidden iframe — no CORS, no API key.
+function submitEmail(email){
+  const {primary, season} = tally();
+  const action = ML_FORMS[primary];
+  if(!action) return; // preview mode — nothing wired up yet
+
+  let sink=document.getElementById('ml_sink');
+  if(!sink){
+    sink=document.createElement('iframe');
+    sink.name='ml_sink'; sink.id='ml_sink'; sink.style.display='none';
+    document.body.appendChild(sink);
+  }
+  const f=document.createElement('form');
+  f.action=action; f.method='post'; f.target='ml_sink'; f.style.display='none';
+  const add=(n,v)=>{ const i=document.createElement('input'); i.type='hidden'; i.name=n; i.value=v||''; f.appendChild(i); };
+  add('fields[email]', email);
+  add('fields[style]', primary);
+  add('fields[style_name]', STYLES[primary].name);
+  add('fields[season]', season);
+  add('fields[generation]', CONTEXT[0].opts[answers.context[0]]);
+  add('fields[support]',    CONTEXT[1].opts[answers.context[1]]);
+  add('fields[stage]',      CONTEXT[2].opts[answers.context[2]]);
+  add('ml-submit', '1');
+  add('anticsrf', 'true');
+  document.body.appendChild(f);
+  f.submit();
+  setTimeout(()=>f.remove(), 2000);
+}
+
+render();
+</script>
+</body>
+</html>
